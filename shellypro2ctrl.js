@@ -99,15 +99,19 @@ function powerctrl(req,res)
 
 function watchdog()
 {
-    let tooHot=false;
+    let tooHot=1;
     // Read thermostat
+    tooHot = Shelly.getComponentStatus("input:0").state
 
 
-    if(webCounter == 0 || tooHot)
+
+    if(webCounter == 0 || tooHot == 1)
     {
         // Turn off both relays
         controlRelays(0, 0);
     }
+
+    webCounter = 0;
 }
 
 // Register HTTP handler
