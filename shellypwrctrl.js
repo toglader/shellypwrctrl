@@ -34,34 +34,34 @@ let first_to_last_to_shed = [
 
   let first_to_last_to_shed = [
     {
-        on_url: "http://192.168.178.84/script/1/powerctrl?0kw"
+        on_url: "http://192.168.88.232/script/1/powerctrl?0kw"
     },  
     {
-        on_url: "http://192.168.178.84/script/1/powerctrl?1kw"
+      on_url: "http://192.168.88.232/script/1/powerctrl?1kw"
     },
     {
-        on_url: "http://192.168.178.84/script/1/powerctrl?2kw"
+      on_url: "http://192.168.88.232/script/1/powerctrl?2kw"
     },
     {
-        on_url: "http://192.168.178.84/script/1/powerctrl?3kw"
+      on_url: "http://192.168.88.232/script/1/powerctrl?3kw"
     }
   ];
   
   let max_before_shedding = 0;
   let min_before_re_adding = -1100;
-  let poll_time = 300; // minimum time span between applying normal on/off steps
+  let poll_time = 10; // minimum time span between applying normal on/off steps
   let short_poll = 10; // span after toggling on a device presumed to already be on
   
   let Pro4PM_channels = [0, 1, 2, 3]; // default to sum of all channels for either 4PM or 3EM
   let Pro3EM_channels = ["a", "b", "c"];
   
-  let logging = false;
+  let logging = true;
   let simulation_power = 0; // set this to manually test in console
   
   /***************   program variables, do not change  ***************/
   
   let ts = 0;
-  let idx_next_to_toggle = -1;
+  let idx_next_to_toggle = 0;
   let last_cycle_time = 0;
   let direction = "coasting";
   let power_states = [];
@@ -72,7 +72,7 @@ let first_to_last_to_shed = [
     if (simulation_power) return simulation_power;
     let power = 0;
     for (k in channel_power) power += channel_power[k];
-    return power;
+    return power * -1;
   }
   
   function log() {
@@ -104,7 +104,7 @@ let first_to_last_to_shed = [
     // Read next load url/channel
     o = first_to_last_to_shed[idx];
     on = dir == "on" ? "true" : "false";
-    
+    /*
     if (def(o.gen)) {
       let cmd;
       if (o.gen == 1) cmd = o.type + "/" + o.id.toString() + "?turn=" + dir;
@@ -112,7 +112,7 @@ let first_to_last_to_shed = [
       Shelly.call("HTTP.GET", { url: "http://" + o.addr + "/" + cmd }, callback);
     
     }
-    
+    */
     if (def(o.on_url) && dir == "on")
       Shelly.call("HTTP.GET", { url: o.on_url }, callback);
     
@@ -136,12 +136,12 @@ let first_to_last_to_shed = [
     if (total > max_before_shedding) {
       if (direction !== "shedding") {
         direction = "shedding";
-        idx_next_to_toggle = 0;
+        //idx_next_to_toggle = 0;
       }
     } else if (total < min_before_re_adding) {
       if (direction !== "loading") {
         direction = "loading";
-        idx_next_to_toggle = first_to_last_to_shed.length - 1;
+        //idx_next_to_toggle = first_to_last_to_shed.length - 1;
       }
     } else if (direction !== "coasting") {
       direction = "coasting";
@@ -153,12 +153,12 @@ let first_to_last_to_shed = [
       (verifying && Date.now() / 1000 > last_cycle_time + short_poll)
     ) {
       last_cycle_time = Date.now() / 1000;
-      if (direction === "loading") {
+      if (direction === "shedding") {
         turn(idx_next_to_toggle, "on");
         if (idx_next_to_toggle > 0) idx_next_to_toggle -= 1;
       }
-      if (direction === "shedding") {
-        turn(idx_next_to_toggle, "off");
+      if (direction === "loading") {
+        turn(idx_next_to_toggle, "on");
         if (idx_next_to_toggle < first_to_last_to_shed.length - 1)
           idx_next_to_toggle += 1;
       }

@@ -3,7 +3,10 @@
 
 let patDogSecs = 20;
 
-let webCOunter = 0;
+let webCounter = 0;
+
+let simulate = true;
+let logging = true;
 
 function errorHandler( response, error_code, error_message){
     print("Error controlling relays");
@@ -11,7 +14,12 @@ function errorHandler( response, error_code, error_message){
 
 function controlRelays(one, two) {
     
-    if(one < 2 && two < 2)
+    if(logging == true)
+    {
+        print("Set output 1: " + one + "  output 2: " + two);
+    }
+    
+    if(one < 2 && two < 2 && simulate == false)
     {
         if(one == 1)
         {
@@ -50,7 +58,11 @@ function controlRelays(one, two) {
 function powerctrl(req,res)
 {
     // Increase access counter
-    webCounter++;
+   § webCounter++;
+    if(logging == true) 
+    {
+        print("Update");
+    }
     
     // check request and comapare the querystring
     if (req.query === '0kw') {
@@ -103,7 +115,15 @@ function watchdog()
     // Read thermostat
     tooHot = Shelly.getComponentStatus("input:0").state
 
+    if(tooHot == 1)
+    {
+        print("Too HOT!");
+    }
 
+    if(webCounter == 0)
+    {
+        print("No updates");
+    }
 
     if(webCounter == 0 || tooHot == 1)
     {
