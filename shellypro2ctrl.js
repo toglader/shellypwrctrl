@@ -9,7 +9,10 @@ let simulate = true;
 let logging = true;
 
 function errorHandler( response, error_code, error_message){
-    print("Error controlling relays");
+    if(error_code != 0)
+    {
+      print("Error controlling relays. Errrorcode :" + error_code + " message: " + error_message);
+    }
 }
 
 function controlRelays(one, two) {
