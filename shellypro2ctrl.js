@@ -25,13 +25,13 @@ function controlRelays(one, two) {
         {
             Shelly.call(
                 "Switch.Set",
-                { id: 0, on: activate }, errorHandler);
+                { id: 0, on: true }, errorHandler);
         }
         else
         {
             Shelly.call(
                 "Switch.Set",
-                { id: 0, on: deactivate }, errorHandler);
+                { id: 0, on: false }, errorHandler);
 
         }
  
@@ -39,13 +39,13 @@ function controlRelays(one, two) {
         {
             Shelly.call(
                 "Switch.Set",
-                { id: 1, on: activate }, errorHandler);
+                { id: 1, on: true }, errorHandler);
         }
         else
         {
             Shelly.call(
                 "Switch.Set",
-                { id: 1, on: deactivate }, errorHandler);
+                { id: 1, on: false }, errorHandler);
 
         }
  
