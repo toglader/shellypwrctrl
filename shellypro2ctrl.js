@@ -114,21 +114,23 @@ function powerctrl(req,res)
 
 function watchdog()
 {
-    let tooHot=1;
+    let tooHot=0;
     // Read thermostat
     tooHot = Shelly.getComponentStatus("input:0").state
 
-    if(tooHot == 1)
+    if(logging == true)
     {
-        print("Too HOT!");
-    }
-
-    if(webCounter == 0)
-    {
-        print("No updates");
-    }
-
-    if(webCounter == 0 || tooHot == 1)
+        if(tooHot == 0)
+        {
+            print("Too HOT!");
+        }
+      
+        if(webCounter == 0)
+        {
+            print("No updates");
+        }
+      }    
+    if(webCounter == 0 || tooHot == 0)
     {
         // Turn off both relays
         controlRelays(0, 0);
