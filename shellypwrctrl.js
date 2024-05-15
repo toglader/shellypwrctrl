@@ -34,22 +34,26 @@ let first_to_last_to_shed = [
 
   let first_to_last_to_shed = [
     {
-        on_url: "http://192.168.88.232/script/1/powerctrl?0kw"
+        on_url: "http://192.168.88.232/script/1/powerctrl?0kw",
+        ping_url: "http://192.168.88.232/script/1/powerctrl?ping"
     },  
     {
-      on_url: "http://192.168.88.232/script/1/powerctrl?1kw"
+      on_url: "http://192.168.88.232/script/1/powerctrl?1kw",
+      ping_url: "http://192.168.88.232/script/1/powerctrl?ping"
     },
     {
-      on_url: "http://192.168.88.232/script/1/powerctrl?2kw"
+      on_url: "http://192.168.88.232/script/1/powerctrl?2kw",
+      ping_url: "http://192.168.88.232/script/1/powerctrl?ping"
     },
     {
-      on_url: "http://192.168.88.232/script/1/powerctrl?3kw"
+      on_url: "http://192.168.88.232/script/1/powerctrl?3kw",
+      ping_url: "http://192.168.88.232/script/1/powerctrl?ping"
     }
   ];
   
   let max_before_shedding = 0;
   let min_before_re_adding = -1100;
-  let poll_time = 10; // minimum time span between applying normal on/off steps
+  let poll_time = 30; // minimum time span between applying normal on/off steps
   let short_poll = 10; // span after toggling on a device presumed to already be on
   
   let Pro4PM_channels = [0, 1, 2, 3]; // default to sum of all channels for either 4PM or 3EM
@@ -97,10 +101,15 @@ let first_to_last_to_shed = [
   
   // Turn on or off loads
   function turn(idx, dir) {
-    if (dir == "on" && power_states[idx] == "on") verifying = true;
-    else verifying = false;
     
+    if (dir != "ping")
+    {
+      if (dir == "on" && power_states[idx] == "on") verifying = true;
+      else verifying = false;
+    }
+      
     power_states[idx] = dir;
+    
     // Read next load url/channel
     o = first_to_last_to_shed[idx];
     on = dir == "on" ? "true" : "false";
@@ -116,9 +125,13 @@ let first_to_last_to_shed = [
     if (def(o.on_url) && dir == "on")
       Shelly.call("HTTP.GET", { url: o.on_url }, callback);
     
-      if (def(o.off_url) && dir == "off")
+    if (def(o.off_url) && dir == "off")
       Shelly.call("HTTP.GET", { url: o.off_url }, callback);
-    log();
+
+    if (def(o.ping_url) && dir == "ping")
+      Shelly.call("HTTP.GET", { url: o.ping_url }, callback);
+
+      log();
   }
   
   function check_power(msg) {
@@ -162,6 +175,12 @@ let first_to_last_to_shed = [
         if (idx_next_to_toggle < first_to_last_to_shed.length - 1)
           idx_next_to_toggle += 1;
       }
+      if (direction === "coasting")
+      {
+        // No changes to loading, just ping to keep relay states
+        turn(idx_next_to_toggle, "ping");
+      }
+
     }
   }
   

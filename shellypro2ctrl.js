@@ -1,11 +1,11 @@
 // Example http://192.168.178.84/script/1/powerctrl?3kw
 // script/1 <- id from the HTTP-Server script
 
-let patDogSecs = 20;
+let patDogSecs = 60;
 
 let webCounter = 0;
 
-let simulate = true;
+let simulate = false;
 let logging = true;
 
 function errorHandler( response, error_code, error_message){
@@ -28,13 +28,13 @@ function controlRelays(one, two) {
         {
             Shelly.call(
                 "Switch.Set",
-                { id: 0, on: true }, errorHandler);
+                { 'id': 0, 'on': true }, errorHandler);
         }
         else
         {
             Shelly.call(
                 "Switch.Set",
-                { id: 0, on: false }, errorHandler);
+                { 'id': 0, 'on': false }, errorHandler);
 
         }
  
@@ -42,13 +42,13 @@ function controlRelays(one, two) {
         {
             Shelly.call(
                 "Switch.Set",
-                { id: 1, on: true }, errorHandler);
+                { 'id': 1, 'on': true }, errorHandler);
         }
         else
         {
             Shelly.call(
                 "Switch.Set",
-                { id: 1, on: false }, errorHandler);
+                { 'id': 1, 'on': false }, errorHandler);
 
         }
  
@@ -60,19 +60,26 @@ function controlRelays(one, two) {
 
 function powerctrl(req,res)
 {
+    let tooHot=0;
+    // Read thermostat
+    tooHot = Shelly.getComponentStatus("input:0").state
+
     // Increase access counter
-   § webCounter++;
+    webCounter++;
     if(logging == true) 
     {
         print("Update");
     }
-    
+    if(tooHot == 0)
+    {
+        // Max temp reached
+        res.body = "Shelly webserer: max temp reached"
+        controlRelays(0,0);
+    }
     // check request and comapare the querystring
-    if (req.query === '0kw') {
+    else if (req.query === '0kw') {
         // response with some text
         res.body = 'Shelly Webserver: 0kw';
-        res.code = 200;
-        res.send();
  
         // Switch off both relays
         controlRelays(0, 0); 
@@ -80,16 +87,12 @@ function powerctrl(req,res)
     } else if (req.query === '1kw') {
         // response with some text
         res.body = 'Shelly Webserver: 1kw';
-        res.code = 200;
-        res.send();
         // Switch on first relay
         controlRelays(1, 0); 
 
     } else if (req.query === '2kw') {
         // response with some text
         res.body = 'Shelly Webserver: 2kw';
-        res.code = 200;
-        res.send();
         // Switch on second relay
         controlRelays(0, 1); 
 
@@ -97,8 +100,6 @@ function powerctrl(req,res)
     } else if (req.query === '3kw') {
         // response with some text
         res.body = 'Shelly Webserver: 3kw';
-        res.code = 200;
-        res.send();
         // Switch on both relays
         controlRelays(1, 1); 
 
@@ -106,9 +107,10 @@ function powerctrl(req,res)
     }
     else {
         res.body = 'Shelly Webserver';
-        res.code = 200;
-        res.send();
     }
+
+    res.code = 200;
+    res.send();
 
 }
 
